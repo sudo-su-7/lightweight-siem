@@ -1,0 +1,95 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+
+  # ── Auth / SSH ──────────────────────────────────────────────────────────────
+  - job_name: auth
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: auth
+          source: auth_log
+          host: ${HOSTNAME}
+          __path__: /host-logs/auth.log
+
+  # ── Syslog ──────────────────────────────────────────────────────────────────
+  - job_name: syslog
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: syslog
+          source: syslog
+          host: ${HOSTNAME}
+          __path__: /host-logs/syslog
+
+  # ── Nginx access ────────────────────────────────────────────────────────────
+  - job_name: nginx_access
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: nginx
+          source: nginx_access
+          host: ${HOSTNAME}
+          __path__: /host-logs/nginx/access.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<remote_addr>\S+) - \S+ \[.+\] "(?P<method>\S+) (?P<path>\S+) \S+" (?P<status>\d+)'
+      - labels:
+          method:
+          status:
+
+  # ── Nginx error ─────────────────────────────────────────────────────────────
+  - job_name: nginx_error
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: nginx
+          source: nginx_error
+          host: ${HOSTNAME}
+          __path__: /host-logs/nginx/error.log
+
+  # ── Apache access ───────────────────────────────────────────────────────────
+  - job_name: apache_access
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: apache
+          source: apache_access
+          host: ${HOSTNAME}
+          __path__: /host-logs/apache2/access.log
+
+  # ── Custom app logs (drop any *.log into /host-logs/apps/) ─────────────────
+  - job_name: custom_apps
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: app
+          source: custom
+          host: ${HOSTNAME}
+          __path__: /host-logs/apps/*.log
+    pipeline_stages:
+      - match:
+          selector: '{job="app"}'
+          stages:
+            - regex:
+                expression: '(?i)(?P<level>debug|info|warn|warning|error|critical|fatal)'
+            - labels:
+                level:
+
+  # ── Kernel / dmesg ──────────────────────────────────────────────────────────
+  - job_name: kernel
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: kernel
+          source: kern_log
+          host: ${HOSTNAME}
+          __path__: /host-logs/kern.log

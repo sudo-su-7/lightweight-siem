@@ -1,0 +1,91 @@
+# SIEM Alert Rules
+# ─────────────────────────────────────────────────────────────────
+# Default rules are shipped with the SIEM.
+# Add your own under the `custom` section — same schema, no code needed.
+#
+# Rule fields:
+#   name       : unique identifier
+#   query      : LogQL selector  e.g. {job="auth"}
+#   match      : regex to apply on top of the query (optional)
+#   condition  : "count" — fire when event count exceeds threshold in window
+#   window     : time window in seconds (default: 300)
+#   threshold  : integer — number of events to trigger on
+#   severity   : critical | high | medium | info
+#   message    : human-readable alert description
+#   enabled    : true | false
+
+defaults:
+
+  - name: ssh_brute_force
+    query: '{job="auth"}'
+    match: "Failed password"
+    condition: count
+    window: 300
+    threshold: 10
+    severity: critical
+    message: "SSH brute force detected — >10 failed passwords in 5 minutes"
+    enabled: true
+
+  - name: sudo_auth_failure
+    query: '{job="auth"}'
+    match: "sudo.*authentication failure"
+    condition: count
+    window: 60
+    threshold: 1
+    severity: high
+    message: "Sudo authentication failure detected"
+    enabled: true
+
+  - name: invalid_user_ssh
+    query: '{job="auth"}'
+    match: "Invalid user"
+    condition: count
+    window: 60
+    threshold: 3
+    severity: high
+    message: "Multiple SSH login attempts with unknown usernames"
+    enabled: true
+
+  - name: root_ssh_login
+    query: '{job="auth"}'
+    match: "Accepted .* for root"
+    condition: count
+    window: 60
+    threshold: 1
+    severity: critical
+    message: "Direct root SSH login detected"
+    enabled: true
+
+  - name: break_in_attempt
+    query: '{job="auth"}'
+    match: "BREAK-IN ATTEMPT"
+    condition: count
+    window: 60
+    threshold: 1
+    severity: critical
+    message: "Break-in attempt flagged by sshd"
+    enabled: true
+
+# ─── Custom rules — add yours below ──────────────────────────────
+custom:
+
+  # Example: alert on nginx 5xx errors
+  # - name: nginx_5xx_spike
+  #   query: '{job="nginx", status=~"5.."}'
+  #   condition: count
+  #   window: 300
+  #   threshold: 20
+  #   severity: high
+  #   message: "Nginx 5xx error spike — possible application failure"
+  #   enabled: true
+
+  # Example: alert on custom app ERROR logs
+  # - name: app_errors
+  #   query: '{job="app"}'
+  #   match: "(?i)error|exception|traceback"
+  #   condition: count
+  #   window: 300
+  #   threshold: 50
+  #   severity: medium
+  #   message: "Application error rate elevated"
+  #   enabled: true

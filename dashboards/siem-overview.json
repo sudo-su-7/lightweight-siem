@@ -1,0 +1,177 @@
+{
+  "title": "SIEM Overview",
+  "uid": "siem-overview",
+  "version": 1,
+  "schemaVersion": 38,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "tags": ["siem", "security"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "🔴 Critical Events (Last 1h)",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "targets": [{
+        "expr": "count_over_time({job=~\".+\"} |~ \"(?i)(failed password|invalid user|break-in|sudo.*failure|authentication failure)\" [1h])",
+        "legendFormat": "Critical Events",
+        "datasource": "Loki"
+      }]
+    },
+    {
+      "id": 2,
+      "title": "SSH Failed Logins (Last 1h)",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          }
+        }
+      },
+      "targets": [{
+        "expr": "count_over_time({job=\"auth\"} |~ \"Failed password\" [1h])",
+        "legendFormat": "Failed Logins",
+        "datasource": "Loki"
+      }]
+    },
+    {
+      "id": 3,
+      "title": "Successful Logins (Last 1h)",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "color": "blue", "value": 0 }] } } },
+      "targets": [{
+        "expr": "count_over_time({job=\"auth\"} |~ \"Accepted (password|publickey)\" [1h])",
+        "legendFormat": "Successful Logins",
+        "datasource": "Loki"
+      }]
+    },
+    {
+      "id": 4,
+      "title": "Sudo Events (Last 1h)",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "color": "yellow", "value": 0 }] } } },
+      "targets": [{
+        "expr": "count_over_time({job=\"auth\"} |~ \"sudo\" [1h])",
+        "legendFormat": "Sudo Events",
+        "datasource": "Loki"
+      }]
+    },
+    {
+      "id": 5,
+      "title": "Active Log Sources",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "targets": [{
+        "expr": "count(count by (source) (count_over_time({job=~\".+\"}[10m])))",
+        "legendFormat": "Sources",
+        "datasource": "Loki"
+      }]
+    },
+    {
+      "id": 6,
+      "title": "Failed SSH Logins Over Time",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        }
+      },
+      "targets": [{
+        "expr": "sum(count_over_time({job=\"auth\"} |~ \"Failed password\" [5m])) by (host)",
+        "legendFormat": "{{host}} — failed",
+        "datasource": "Loki"
+      }, {
+        "expr": "sum(count_over_time({job=\"auth\"} |~ \"Accepted\" [5m])) by (host)",
+        "legendFormat": "{{host}} — accepted",
+        "datasource": "Loki"
+      }]
+    },
+    {
+      "id": 7,
+      "title": "Log Volume by Source",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 5 }
+        }
+      },
+      "targets": [{
+        "expr": "sum(count_over_time({job=~\".+\"}[5m])) by (job)",
+        "legendFormat": "{{job}}",
+        "datasource": "Loki"
+      }]
+    },
+    {
+      "id": 8,
+      "title": "Recent Security Events",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 10 },
+      "options": { "dedupStrategy": "none", "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+      "targets": [{
+        "expr": "{job=~\".+\"} |~ \"(?i)(failed|invalid|error|critical|sudo|break-in|authentication failure)\"",
+        "legendFormat": "",
+        "datasource": "Loki"
+      }]
+    },
+    {
+      "id": 9,
+      "title": "Nginx — HTTP Status Codes",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 22, "w": 12, "h": 7 },
+      "fieldConfig": { "defaults": { "custom": { "lineWidth": 2 } } },
+      "targets": [{
+        "expr": "sum(count_over_time({job=\"nginx\"} [5m])) by (status)",
+        "legendFormat": "HTTP {{status}}",
+        "datasource": "Loki"
+      }]
+    },
+    {
+      "id": 10,
+      "title": "Kernel / System Errors",
+      "type": "logs",
+      "gridPos": { "x": 12, "y": 22, "w": 12, "h": 7 },
+      "options": { "dedupStrategy": "signature", "showTime": true, "sortOrder": "Descending" },
+      "targets": [{
+        "expr": "{job=\"kernel\"} |~ \"(?i)(error|panic|oom|killed|segfault)\"",
+        "datasource": "Loki"
+      }]
+    }
+  ]
+}
