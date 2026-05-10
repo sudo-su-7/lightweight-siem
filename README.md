@@ -1,6 +1,6 @@
  # 🔍 lightweight-siem
 
-> Production-ready SIEM prototype: generic multi-source log ingestion via Promtail → Loki → Grafana dashboards + Python alert engine with configurable detection rules.
+> SOC-ready SIEM prototype: generic multi-source log ingestion via Promtail → Loki → Grafana dashboards + Python alert engine with configurable detection rules.
 
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED) ![Grafana](https://img.shields.io/badge/Grafana-11-F46800) ![Loki](https://img.shields.io/badge/Loki-3.0-yellow) ![Python](https://img.shields.io/badge/Python-3.11-blue)
 
