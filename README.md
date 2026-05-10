@@ -140,5 +140,5 @@ Set `WEBHOOK_URL` in `.env` to receive JSON POSTs on every alert:
 
 ## Author
 
-**Daniel Mutuma** — Junior Cybersecurity Analyst 
+**Daniel Mutuma** —  Cybersecurity Analyst 
 [github.com/sudo-su-7](https://github.com/sudo-su-7)
